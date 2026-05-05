@@ -7,10 +7,40 @@
 # ==========================================================
 
 import os
+import psycopg2
 import re
 import streamlit as st
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+def save_to_db(campaign_name, brief, score, plan):
+    conn = psycopg2.connect(
+        dbname="campaigncopilot",
+        user="saimounika",
+        port=5433
+    )
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS campaign_runs (
+            id SERIAL PRIMARY KEY,
+            campaign_name TEXT,
+            brief TEXT,
+            score TEXT,
+            plan TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cur.execute("""
+        INSERT INTO campaign_runs
+        (campaign_name, brief, score, plan)
+        VALUES (%s, %s, %s, %s)
+    """, (campaign_name, brief, score, plan))
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 # ==========================================================
 # ENV
